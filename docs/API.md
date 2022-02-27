@@ -38,6 +38,7 @@ returns an instance of `browser`, same as `puppeteer.launch`, but it also instal
 interface MetamaskOptions {
   seed?: string;
   password?: string;
+  hideSeed?: boolean;
 }
 ```
 

@@ -16,6 +16,7 @@ export type LaunchOptions = Parameters<typeof puppeteer['launch']>[0] & {
 export type MetamaskOptions = {
   seed?: string;
   password?: string;
+  hideSeed?: boolean;
 };
 
 export type AddNetwork = {
@@ -104,6 +105,7 @@ export async function setupMetamask(browser: puppeteer.Browser, options: Metamas
     page,
     options.seed || 'already turtle birth enroll since owner keep patch skirt drift any dinner',
     options.password || 'password1234',
+      options.hideSeed,
   );
 
   await closeNotificationPage(browser);
@@ -159,18 +161,28 @@ async function confirmWelcomeScreen(metamaskPage: puppeteer.Page): Promise<void>
   await continueButton.click();
 }
 
-async function importAccount(metamaskPage: puppeteer.Page, seed: string, password: string): Promise<void> {
+async function importAccount(
+    metamaskPage: puppeteer.Page,
+    seed: string,
+    password: string,
+    hideSeed: boolean,
+): Promise<void> {
   const importLink = await metamaskPage.waitForSelector('.first-time-flow button');
   await importLink.click();
 
   const metricsOptOut = await metamaskPage.waitForSelector('.metametrics-opt-in button.btn-primary');
   await metricsOptOut.click();
 
-  const showSeedPhraseInput = await metamaskPage.waitForSelector('#ftf-chk1-label');
-  await showSeedPhraseInput.click();
-
-  const seedPhraseInput = await metamaskPage.waitForSelector('.first-time-flow textarea');
-  await seedPhraseInput.type(seed);
+  if (hideSeed) {
+    const seedPhraseInput = await metamaskPage.waitForSelector('.first-time-flow__seedphrase input[type=password]');
+    await seedPhraseInput.click();
+    await seedPhraseInput.type(seed);
+  } else {
+    const showSeedPhraseInput = await metamaskPage.waitForSelector('#ftf-chk1-label');
+    await showSeedPhraseInput.click();
+    const seedPhraseInput = await metamaskPage.waitForSelector('.first-time-flow textarea');
+    await seedPhraseInput.type(seed);
+  }
 
   const passwordInput = await metamaskPage.waitForSelector('#password');
   await passwordInput.type(password);
